@@ -46,7 +46,9 @@ fun RiepilogoScreen(navController: NavHostController, viewModel: NotesViewModel)
     val showDialog = remember { mutableStateOf(false) }
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
 
-    Column() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 80.dp)
+    ) {
         LazyColumn() {
             items(allNotes) { nota ->
                 Card(
