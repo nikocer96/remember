@@ -8,32 +8,42 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +61,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.remember.data.Nota
 import com.example.remember.ui.theme.RememberTheme
 import com.example.remember.viewModel.NotesViewModel
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
@@ -61,7 +72,6 @@ class MainActivity : ComponentActivity() {
             val isDarkTheme = remember { mutableStateOf(false) }
             RememberTheme(darkTheme = isDarkTheme.value) {
 
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -84,60 +94,93 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val canNavigateBack = currentBackStackEntry?.destination?.route != "home"
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Remember",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Red,
-                    titleContentColor = Color.White
-                ),
-                navigationIcon = {
-                    if (canNavigateBack) {
-                        IconButton(onClick = {
-                            navController.popBackStack()
-                        }) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    // ✅ Spostato all'esterno di Scaffold
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        // Evita che il menu' resti aperto
+        drawerContent = {
+            ModalDrawerSheet {
+                DrawerContent(navController, isDarkTheme, drawerState, scope)
+            }
+        },
+        // Sfondo scuro quando il menu è aperto
+        scrimColor = Color.Black.copy(alpha = 0.5f)
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Remember",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Red,
+                        titleContentColor = Color.White
+                    ),
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(
-                                imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Torna indietro",
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = "Apri menù",
                                 tint = Color.White
                             )
                         }
+                    },
+                    actions = {
+                        if (canNavigateBack) {
+                            IconButton(onClick = {
+                                navController.popBackStack()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowBack,
+                                    contentDescription = "Torna indietro",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                NavHost(navController = navController, startDestination = "home") {
+                    composable("home") {
+                        HomeScreen(navController, viewModel, isDarkTheme)
+                    }
+                    composable("day/{giorno}") { backStackEntry ->
+                        val giorno = backStackEntry.arguments?.getString("giorno") ?: "Giorno"
+                        DayScreen(navController, giorno, viewModel)
+                    }
+                    composable("riepilogo") {
+                        RiepilogoScreen(navController, viewModel)
                     }
                 }
-            )
-        }
-    ) {paddingValues ->
-        NavHost(navController = navController, startDestination = "home" ) {
-            composable("home") {
-                HomeScreen(navController, viewModel, isDarkTheme)
-            }
-            composable("day/{giorno}") { backStackEntry ->
-                val giorno = backStackEntry.arguments?.getString("giorno") ?: "Giorno"
-                DayScreen(navController = navController, giorno = giorno, viewModel = viewModel)
-            }
-            composable("riepilogo") {
-                RiepilogoScreen(navController, viewModel)
             }
         }
     }
-
-
 }
+
 
 @Composable
 fun HomeScreen(navaController: NavController, viewModel: NotesViewModel, isDarkTheme: MutableState<Boolean>) {
 
     val giorni = listOf<String>("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(top = 16.dp)
+        .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
         ) {
@@ -146,11 +189,11 @@ fun HomeScreen(navaController: NavController, viewModel: NotesViewModel, isDarkT
                     navaController.navigate("day/$giorno")
             }, modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 10.dp)) {
+                .padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(text = giorno)
             }
         }
-        Button(onClick = {
+       /* Button(onClick = {
             navaController.navigate("riepilogo")
         }) {
             Text(text = "Riepilogo")
@@ -160,7 +203,7 @@ fun HomeScreen(navaController: NavController, viewModel: NotesViewModel, isDarkT
             isDarkTheme.value = !isDarkTheme.value
         }) {
             Text(if (isDarkTheme.value) "passa a chiaro" else "passa a scuro")
-        }
+        }*/
     }
 }
 
@@ -169,8 +212,6 @@ fun HomeScreen(navaController: NavController, viewModel: NotesViewModel, isDarkT
 fun DayScreen(navController: NavController, giorno: String, viewModel: NotesViewModel) {
 
     val fasi = listOf<String>("Mattina", "Pomeriggio", "Sera", "Notte")
-    var notaScritta by remember { mutableStateOf("") }
-    val noteMap = remember { mutableStateMapOf<String, String>() }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,9 +225,11 @@ fun DayScreen(navController: NavController, giorno: String, viewModel: NotesView
                 Text(text = fase, fontSize = 18.sp, fontWeight = FontWeight.Medium)
 
                 OutlinedTextField(
-                    value = viewModel.noteContentMap[fase] ?: "", // Recupera la nota per quella fase
+                    // Recupero la nota per quella fase
+                    value = viewModel.noteContentMap[fase] ?: "",
                     onValueChange = {nuovaNota ->
-                        viewModel.onNoteContentChange(fase, nuovaNota)}, // Salva la nuova nota
+                        // Salvo la nuova nota
+                        viewModel.onNoteContentChange(fase, nuovaNota)},
                     label = { Text("Inserisci nota per $fase") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -194,17 +237,17 @@ fun DayScreen(navController: NavController, giorno: String, viewModel: NotesView
         }
         val (data, orario) = getCurrentDateAndTime()
         Button(onClick = {
-            // Cicla su ogni fase e crea una nota separata per ogni fase
+            // Ciclo su ogni fase e creo una nota separata per ogni fase
             fasi.forEach { fase ->
                 val contenuto = viewModel.noteContentMap[fase] ?: ""
                 if (contenuto.isNotEmpty()) {
                     // Aggiungi la nota per questa fase
                     viewModel.addNote(
                         Nota(
-                            contenuto = contenuto,  // Il contenuto della fase
-                            fase = fase,            // La fase (Mattina, Pomeriggio, ecc.)
-                            data = data,           // La data corrente
-                            orario = orario        // L'orario corrente
+                            contenuto = contenuto,
+                            fase = fase,
+                            data = data,
+                            orario = orario
                         )
                     )
                     viewModel.noteContentMap = viewModel.noteContentMap.toMutableMap().apply {
@@ -216,10 +259,5 @@ fun DayScreen(navController: NavController, giorno: String, viewModel: NotesView
             Text(text = "Salva Note")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            navController.popBackStack()
-        }) {
-            Text(text = "Torna Indietro")
-        }
     }
 }

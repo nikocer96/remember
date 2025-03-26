@@ -47,7 +47,7 @@ fun RiepilogoScreen(navController: NavHostController, viewModel: NotesViewModel)
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 80.dp)
+        modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
     ) {
         LazyColumn() {
             items(allNotes) { nota ->
@@ -98,12 +98,6 @@ fun RiepilogoScreen(navController: NavHostController, viewModel: NotesViewModel)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
-        }
-
-        Button(onClick = {
-            navController.popBackStack()
-        }) {
-            Text(text = "Torna Indietro")
         }
         if (showDialog.value && selectedNote.value != null) {
             ModficaNota(
