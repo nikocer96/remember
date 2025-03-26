@@ -79,7 +79,7 @@ fun DrawerContent(
 
         NavigationDrawerItem(
             label = { Text(text = if (isDarkTheme.value) "Modalità chiara" else "Modalità scura") },
-            selected = false, 
+            selected = false,
             icon = { Icon(
                 if (isDarkTheme.value) Icons.Filled.FavoriteBorder else Icons.Filled.Favorite,
                 contentDescription = "Tema"
