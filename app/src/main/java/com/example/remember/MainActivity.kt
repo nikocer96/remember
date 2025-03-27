@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,6 +53,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -102,7 +105,7 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // ✅ Spostato all'esterno di Scaffold
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         // Evita che il menu' resti aperto
@@ -127,7 +130,7 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Red,
+                        containerColor = Color(0xFF5227D8),
                         titleContentColor = Color.White
                     ),
                     navigationIcon = {
@@ -169,7 +172,7 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
                     }
                     composable("day/{giorno}") { backStackEntry ->
                         val giorno = backStackEntry.arguments?.getString("giorno") ?: "Giorno"
-                        DayScreen(navController, giorno, viewModel)
+                        DayScreen(navController, giorno, viewModel, isDarkTheme)
                     }
                     composable("riepilogo") {
                         RiepilogoScreen(navController, viewModel, isDarkTheme)
@@ -182,8 +185,16 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    Column {
-        Text(text = "Benvenuto in Remember")
+    Column(modifier = Modifier.padding(12.dp)) {
+        Text(
+            text = "Scegli la categoria",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(16.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
@@ -234,13 +245,27 @@ fun MedicineScreen(navaController: NavController, viewModel: NotesViewModel, isD
         horizontalAlignment = Alignment.CenterHorizontally,
 
         ) {
+        Text(
+            text = "Aggiungi tutte le tue medicine",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Medium,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(16.dp)
+        )
+        Divider(color = if (isDarkTheme.value) Color.LightGray else Color.Gray)
+        Spacer(modifier = Modifier.height(12.dp))
         for(giorno in giorni) {
             Button(onClick = {
                     navaController.navigate("day/$giorno")
             }, modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(text = giorno)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = giorno,
+                    fontSize = 20.sp
+                )
             }
         }
        /* Button(onClick = {
@@ -259,19 +284,31 @@ fun MedicineScreen(navaController: NavController, viewModel: NotesViewModel, isD
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DayScreen(navController: NavController, giorno: String, viewModel: NotesViewModel) {
+fun DayScreen(
+    navController: NavController,
+    giorno: String,
+    viewModel: NotesViewModel,
+    isDarkTheme: MutableState<Boolean>
+    ) {
 
     val fasi = listOf<String>("Mattina", "Pomeriggio", "Sera", "Notte")
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 80.dp)
+            .padding(top = 30.dp)
     ) {
-        //Text(text = "Hai selezionato il giorno: $giorno")
+        Text(
+            text = giorno,
+            fontSize = 30.sp,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        )
+        Divider(color = if (isDarkTheme.value) Color.LightGray else Color.Gray)
         for (fase in fasi) {
             Column(modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)) {
+                .padding(12.dp)) {
                 Text(text = fase, fontSize = 18.sp, fontWeight = FontWeight.Medium)
 
                 OutlinedTextField(
@@ -281,7 +318,9 @@ fun DayScreen(navController: NavController, giorno: String, viewModel: NotesView
                         // Salvo la nuova nota
                         viewModel.onNoteContentChange(fase, nuovaNota)},
                     label = { Text("Inserisci nota per $fase") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
                 )
             }
         }
@@ -306,7 +345,10 @@ fun DayScreen(navController: NavController, giorno: String, viewModel: NotesView
                 }
             }
         }) {
-            Text(text = "Salva Note")
+            Text(
+                text = "Salva Nota",
+                fontSize = 16.sp
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
     }

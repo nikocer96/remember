@@ -81,7 +81,7 @@ fun RiepilogoScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Delete,
-                                contentDescription = "Delete",
+                                contentDescription = "Elimina",
                                 tint = Color.Red
                             )
                         }
@@ -92,7 +92,7 @@ fun RiepilogoScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Edit,
-                                contentDescription = "Edit",
+                                contentDescription = "Modifica",
                                 tint = if (isDarkTheme.value) Color.White else Color.Black
                             )
                         }
