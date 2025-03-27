@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -184,27 +186,36 @@ fun HomeScreen(navController: NavHostController) {
         Text(text = "Benvenuto in Remember")
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
         ){
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(0.6f)
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(16.dp))
                     .clickable { navController.navigate("medicine") }
                     .background(Color.LightGray)
+                    .padding(20.dp)
             ) {
-
+                Image(
+                    painter = painterResource(id = R.drawable.icons8_medicine_64),
+                    contentDescription = "Medicine",
+                    modifier = Modifier.matchParentSize(),
+                    //contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
             }
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(0.6f)
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(16.dp))
                     .clickable { navController.navigate("medicine") }
                     .background(Color.Blue)
+                    .padding(20.dp)
             ) {
 
             }
