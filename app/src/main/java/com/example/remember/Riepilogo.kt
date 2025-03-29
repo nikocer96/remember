@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.remember.data.Nota
@@ -45,11 +46,14 @@ fun RiepilogoScreen(
     isDarkTheme: MutableState<Boolean>
 ) {
     val allNotes by viewModel.getAllNotes.collectAsState(initial = emptyList())
-    val showDialog = remember { mutableStateOf(false) }
+    var showDialog = remember { mutableStateOf(false) }
+    var showDeleteDialog = remember { mutableStateOf(false) }
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp)
     ) {
         LazyColumn() {
             items(allNotes) { nota ->
@@ -76,7 +80,8 @@ fun RiepilogoScreen(
                         // Icona per eliminare la nota
                         IconButton(
                             onClick = {
-                                viewModel.deleteNote(nota)
+                                selectedNote.value = nota
+                                showDeleteDialog.value = true
                             }
                         ) {
                             Icon(
@@ -110,6 +115,35 @@ fun RiepilogoScreen(
                     showDialog.value = false
                 }
             )
+        }
+        if (showDeleteDialog.value && selectedNote.value != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog.value = false },
+                title = {Text(text = "Conferma eliminazione")},
+                text = {Text(text = "Sei sicuro di voler eliminare questa nota?")},
+                confirmButton = {
+                    Button(onClick = {
+                        viewModel.deleteNote(selectedNote.value!!)
+                        showDeleteDialog.value = false
+                    }) {
+                        Text("Si",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                            )
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = {
+                        showDeleteDialog.value = false
+                    }) {
+                        Text("No",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                            )
+                    }
+                }
+            )
+
         }
     }
 }
