@@ -21,6 +21,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -29,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.remember.data.Nota
 import com.example.remember.viewModel.NotesViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun RiepilogoScreen(
@@ -50,11 +54,15 @@ fun RiepilogoScreen(
     var showDeleteDialog = remember { mutableStateOf(false) }
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
 
+    val snackbarHostState = remember {SnackbarHostState()}
+    val coroutineScope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp)
     ) {
+        SnackbarHost(hostState = snackbarHostState)
         LazyColumn() {
             items(allNotes) { nota ->
                 Card(
@@ -125,6 +133,13 @@ fun RiepilogoScreen(
                     Button(onClick = {
                         viewModel.deleteNote(selectedNote.value!!)
                         showDeleteDialog.value = false
+
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Nota eliminata con successo",
+                                actionLabel = "ok"
+                            )
+                        }
                     }) {
                         Text("Si",
                             modifier = Modifier.fillMaxWidth(),
