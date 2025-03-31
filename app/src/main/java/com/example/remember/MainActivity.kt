@@ -1,6 +1,9 @@
 package com.example.remember
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -37,6 +39,8 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -52,9 +56,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,6 +77,9 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
+
+    val CHANNEL_ID = "channelID"
+    val CHANNEL_NAME = "channelName"
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,11 +92,26 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavHost(isDarkTheme)
+                    createNotificationsChannel()
                 }
             }
         }
     }
+    fun createNotificationsChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH).apply {
+                    lightColor = Color.Green.toArgb()
+                    enableLights(true)
+            }
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
+    }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -282,6 +304,7 @@ fun MedicineScreen(navaController: NavController, viewModel: NotesViewModel, isD
     }
 }
 
+@SuppressLint("RememberReturnType")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DayScreen(
@@ -290,19 +313,23 @@ fun DayScreen(
     viewModel: NotesViewModel,
     isDarkTheme: MutableState<Boolean>
     ) {
-
+    val snackbarHostState = remember { SnackbarHostState() }
+    val caroutineScope = rememberCoroutineScope()
     val fasi = listOf<String>("Mattina", "Pomeriggio", "Sera", "Notte")
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 30.dp)
     ) {
+        SnackbarHost(hostState = snackbarHostState)
         Text(
             text = giorno,
             fontSize = 30.sp,
             fontFamily = FontFamily.Monospace,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         )
         Divider(color = if (isDarkTheme.value) Color.LightGray else Color.Gray)
         for (fase in fasi) {
@@ -341,6 +368,12 @@ fun DayScreen(
                     )
                     viewModel.noteContentMap = viewModel.noteContentMap.toMutableMap().apply {
                         this[fase] = ""
+                    }
+                    caroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Nota aggiunta con successo",
+                            actionLabel = "ok"
+                        )
                     }
                 }
             }

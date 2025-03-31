@@ -1,6 +1,7 @@
 package com.example.remember
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,12 +13,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +48,7 @@ import androidx.navigation.NavHostController
 import com.example.remember.data.Nota
 import com.example.remember.viewModel.NotesViewModel
 import kotlinx.coroutines.launch
+import kotlin.math.exp
 
 @Composable
 fun RiepilogoScreen(
@@ -53,6 +60,8 @@ fun RiepilogoScreen(
     var showDialog = remember { mutableStateOf(false) }
     var showDeleteDialog = remember { mutableStateOf(false) }
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
+    var showDialogDrop = remember { mutableStateOf(false) }
+
 
     val snackbarHostState = remember {SnackbarHostState()}
     val coroutineScope = rememberCoroutineScope()
@@ -65,6 +74,7 @@ fun RiepilogoScreen(
         SnackbarHost(hostState = snackbarHostState)
         LazyColumn() {
             items(allNotes) { nota ->
+                var expanded = remember { mutableStateOf(false) }
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth()
@@ -77,7 +87,7 @@ fun RiepilogoScreen(
                         verticalAlignment = Alignment.CenterVertically // Allinea il testo e l'icona verticalmente
                     ) {
                         // Testo della nota
-                        Column(modifier = Modifier.width(300.dp)) {
+                        Column(modifier = Modifier.width(310.dp)) {
                             Text(
                                 text = "Fase: ${nota.fase} \n Contenuto: ${nota.contenuto} \n Data: ${nota.data} \n Ora: ${nota.orario}",
                                 style = MaterialTheme.typography.bodyMedium
@@ -85,7 +95,60 @@ fun RiepilogoScreen(
                             )
                         }
 
+                        Box() {
+                            IconButton(onClick = { expanded.value = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = "Opzioni riepilogo"
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = expanded.value,
+                                onDismissRequest = { expanded.value = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(text = "Elimina") },
+                                    onClick = {
+                                        selectedNote.value = nota
+                                        showDeleteDialog.value = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Delete,
+                                            contentDescription = "Elimina")
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(text = "Modifica") },
+                                    onClick = {
+                                        selectedNote.value = nota
+                                        showDialog.value = true
+                                        expanded.value = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Edit,
+                                            contentDescription = "Modifica"
+                                        )
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(text = "Notifica") },
+                                    onClick = {
+                                    /*TODO*/
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Notifications,
+                                            contentDescription = "Programma notifica"
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
                         // Icona per eliminare la nota
+                        /*
                         IconButton(
                             onClick = {
                                 selectedNote.value = nota
@@ -109,6 +172,18 @@ fun RiepilogoScreen(
                                 tint = if (isDarkTheme.value) Color.White else Color.Black
                             )
                         }
+                        IconButton(
+                            onClick = {
+                                ""
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Notifications,
+                                contentDescription = "Notifica",
+                                tint = Color.Red
+                            )
+                        }
+
+                         */
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
