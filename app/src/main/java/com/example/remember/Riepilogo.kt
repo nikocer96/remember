@@ -1,5 +1,10 @@
 package com.example.remember
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -56,12 +62,15 @@ fun RiepilogoScreen(
     viewModel: NotesViewModel,
     isDarkTheme: MutableState<Boolean>
 ) {
+    val context = LocalContext.current
     val allNotes by viewModel.getAllNotes.collectAsState(initial = emptyList())
     var showDialog = remember { mutableStateOf(false) }
     var showDeleteDialog = remember { mutableStateOf(false) }
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
-    var showDialogDrop = remember { mutableStateOf(false) }
 
+    var hour by remember { mutableStateOf(0) }
+    var minute by remember { mutableStateOf(0) }
+    var isDialogOpen by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember {SnackbarHostState()}
     val coroutineScope = rememberCoroutineScope()
@@ -135,7 +144,8 @@ fun RiepilogoScreen(
                                 DropdownMenuItem(
                                     text = { Text(text = "Notifica") },
                                     onClick = {
-                                    /*TODO*/
+                                        isDialogOpen = true
+                                        selectedNote.value = nota // Salva la nota selezionata per usarla nella notifica
                                     },
                                     leadingIcon = {
                                         Icon(
@@ -189,6 +199,26 @@ fun RiepilogoScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+
+        if (isDialogOpen) {
+            val timePickerDialog = TimePickerDialog(
+                context,
+                { _, selectedHour, selectedMinute ->
+                    hour = selectedHour
+                    minute = selectedMinute
+                    isDialogOpen = false
+
+                    // Passiamo il contenuto della nota selezionata
+                    viewModel.sendNotificationAt(context, hour, minute, selectedNote.value?.contenuto ?: "Nessun contenuto")
+                },
+                hour,
+                minute,
+                true
+            )
+            timePickerDialog.show()
+        }
+
+
         if (showDialog.value && selectedNote.value != null) {
             ModficaNota(
                 nota = selectedNote.value!!,
@@ -275,6 +305,8 @@ fun ModficaNota(nota: Nota, onDismiss: () -> Unit, onSave: (Nota) -> Unit) {
 
     )
 }
+
+
 
 
 

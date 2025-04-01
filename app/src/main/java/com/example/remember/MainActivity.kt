@@ -1,9 +1,12 @@
 package com.example.remember
 
+import AlertDetails
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -63,6 +66,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -79,34 +84,66 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     val CHANNEL_ID = "channelID"
-    val CHANNEL_NAME = "channelName"
+    val CHANNEL_NAME = "Notifiche Importanti"
+    val CHANNEL_DESCRIPTION = "Ricevi notifiche relative a eventi importanti della tua app."
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val isDarkTheme = remember { mutableStateOf(false) }
             RememberTheme(darkTheme = isDarkTheme.value) {
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavHost(isDarkTheme)
-                    createNotificationsChannel()
+                    createNotificationsChannel() // Assicurati di creare il canale qui
                 }
             }
         }
     }
-    fun createNotificationsChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH).apply {
-                    lightColor = Color.Green.toArgb()
-                    enableLights(true)
+    // Crea il canale di notifica per Android 8.0+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationsChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val CHANNEL_NAME = "Notifiche Importanti"  // Nome del canale
+            val CHANNEL_DESCRIPTION = "Ricevi notifiche relative a eventi importanti della tua app."  // Descrizione del canale
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+
+            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
+                description = CHANNEL_DESCRIPTION
             }
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
+
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    // Funzione per inviare una notifica
+     fun sendNotification() {
+        // Crea un'Intent per la notifica (puoi personalizzarla)
+        val intent = Intent(this, AlertDetails::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Crea la notifica
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Sostituisci con la tua icona
+            .setContentTitle("Notifica di esempio")
+            .setContentText("Questo è il corpo della notifica")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        // Visualizza la notifica
+        with(NotificationManagerCompat.from(this)) {
+            notify(1, builder.build()) // Usa un ID univoco per ogni notifica
         }
     }
 }
