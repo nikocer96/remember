@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -118,56 +119,72 @@ fun RiepilogoScreen(
                             )
 
                         }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp)
+                                .padding(16.dp)
+                        ) {
+                            IconButton(
+                                onClick = { expanded.value = true },
+                                modifier = if (!nota.dataNotifica.isNullOrBlank() && !nota.oraNotifica.isNullOrBlank()) {
+                                    Modifier.align(Alignment.TopEnd)
+                                } else {
+                                    Modifier.align(Alignment.Center)
+                                }
 
-                        Box {
-                            IconButton(onClick = { expanded.value = true }) {
+                            ) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
                                     contentDescription = "Opzioni riepilogo"
                                 )
                             }
+
+                            if (!nota.dataNotifica.isNullOrBlank() && !nota.oraNotifica.isNullOrBlank()) {
+                                IconButton(
+                                    onClick = { /* Visualizza notifica */ },
+                                    modifier = Modifier.align(Alignment.BottomEnd)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Search,
+                                        contentDescription = "Visualizza notifica"
+                                    )
+                                }
+                            }
+
                             DropdownMenu(
                                 expanded = expanded.value,
                                 onDismissRequest = { expanded.value = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(text = "Elimina") },
+                                    text = { Text("Elimina") },
                                     onClick = {
                                         selectedNote.value = nota
                                         showDeleteDialog.value = true
                                     },
                                     leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Filled.Delete,
-                                            contentDescription = "Elimina"
-                                        )
+                                        Icon(Icons.Filled.Delete, contentDescription = "Elimina")
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text(text = "Modifica") },
+                                    text = { Text("Modifica") },
                                     onClick = {
                                         selectedNote.value = nota
                                         showDialog.value = true
                                         expanded.value = false
                                     },
                                     leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Filled.Edit,
-                                            contentDescription = "Modifica"
-                                        )
+                                        Icon(Icons.Filled.Edit, contentDescription = "Modifica")
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text(text = "Notifica") },
+                                    text = { Text("Notifica") },
                                     onClick = {
                                         isDateDialogOpen = true
                                         selectedNote.value = nota
                                     },
                                     leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Filled.Notifications,
-                                            contentDescription = "Programma notifica"
-                                        )
+                                        Icon(Icons.Filled.Notifications, contentDescription = "Programma notifica")
                                     }
                                 )
                             }
