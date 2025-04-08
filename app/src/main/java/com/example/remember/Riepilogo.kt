@@ -27,6 +27,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -54,6 +55,7 @@ import androidx.navigation.NavHostController
 import com.example.remember.data.Nota
 import com.example.remember.viewModel.NotesViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import kotlin.math.exp
 
 @Composable
@@ -68,11 +70,17 @@ fun RiepilogoScreen(
     var showDeleteDialog = remember { mutableStateOf(false) }
     var selectedNote = remember { mutableStateOf<Nota?>(null) }
 
-    var hour by remember { mutableStateOf(0) }
-    var minute by remember { mutableStateOf(0) }
-    var isDialogOpen by remember { mutableStateOf(false) }
+    val calendar = remember { Calendar.getInstance() }
+    var selectedYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var selectedMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
+    var selectedDay by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    var selectedHour by remember { mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY)) }
+    var selectedMinute by remember { mutableStateOf(calendar.get(Calendar.MINUTE)) }
 
-    val snackbarHostState = remember {SnackbarHostState()}
+    var isDateDialogOpen by remember { mutableStateOf(false) }
+    var isTimeDialogOpen by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     Column(
@@ -81,7 +89,7 @@ fun RiepilogoScreen(
             .padding(top = 20.dp)
     ) {
         SnackbarHost(hostState = snackbarHostState)
-        LazyColumn() {
+        LazyColumn {
             items(allNotes) { nota ->
                 var expanded = remember { mutableStateOf(false) }
                 Card(
@@ -91,20 +99,27 @@ fun RiepilogoScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp), // Distanziamento interno
-                        horizontalArrangement = Arrangement.SpaceBetween, // Spazio tra testo e icona
-                        verticalAlignment = Alignment.CenterVertically // Allinea il testo e l'icona verticalmente
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Testo della nota
                         Column(modifier = Modifier.width(310.dp)) {
                             Text(
-                                text = "Fase: ${nota.fase} \n Contenuto: ${nota.contenuto} \n Data: ${nota.data} \n Ora: ${nota.orario}",
+                                text = buildString {
+                                    append("Fase: ${nota.fase}\n")
+                                    append("Contenuto: ${nota.contenuto}\n")
+                                    append("Data: ${nota.data}\n")
+                                    append("Ora: ${nota.orario}")
+                                    if (!nota.dataNotifica.isNullOrBlank() && !nota.oraNotifica.isNullOrBlank()) {
+                                        append("\nNotifica: ${nota.dataNotifica} alle ${nota.oraNotifica}")
+                                    }
+                                },
                                 style = MaterialTheme.typography.bodyMedium
-
                             )
+
                         }
 
-                        Box() {
+                        Box {
                             IconButton(onClick = { expanded.value = true }) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
@@ -124,7 +139,8 @@ fun RiepilogoScreen(
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Filled.Delete,
-                                            contentDescription = "Elimina")
+                                            contentDescription = "Elimina"
+                                        )
                                     }
                                 )
                                 DropdownMenuItem(
@@ -144,8 +160,8 @@ fun RiepilogoScreen(
                                 DropdownMenuItem(
                                     text = { Text(text = "Notifica") },
                                     onClick = {
-                                        isDialogOpen = true
-                                        selectedNote.value = nota // Salva la nota selezionata per usarla nella notifica
+                                        isDateDialogOpen = true
+                                        selectedNote.value = nota
                                     },
                                     leadingIcon = {
                                         Icon(
@@ -156,66 +172,65 @@ fun RiepilogoScreen(
                                 )
                             }
                         }
-
-                        // Icona per eliminare la nota
-                        /*
-                        IconButton(
-                            onClick = {
-                                selectedNote.value = nota
-                                showDeleteDialog.value = true
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = "Elimina",
-                                tint = Color.Red
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                selectedNote.value = nota
-                                showDialog.value = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = "Modifica",
-                                tint = if (isDarkTheme.value) Color.White else Color.Black
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                ""
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Notifications,
-                                contentDescription = "Notifica",
-                                tint = Color.Red
-                            )
-                        }
-
-                         */
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
-        if (isDialogOpen) {
-            val timePickerDialog = TimePickerDialog(
+        if (isDateDialogOpen) {
+            android.app.DatePickerDialog(
                 context,
-                { _, selectedHour, selectedMinute ->
-                    hour = selectedHour
-                    minute = selectedMinute
-                    isDialogOpen = false
-
-                    // Passiamo il contenuto della nota selezionata
-                    viewModel.sendNotificationAt(context, hour, minute, selectedNote.value?.contenuto ?: "Nessun contenuto")
+                { _, year, month, day ->
+                    selectedYear = year
+                    selectedMonth = month
+                    selectedDay = day
+                    isDateDialogOpen = false
+                    isTimeDialogOpen = true
                 },
-                hour,
-                minute,
+                selectedYear,
+                selectedMonth,
+                selectedDay
+            ).show()
+        }
+
+        if (isTimeDialogOpen) {
+            TimePickerDialog(
+                context,
+                { _, hour, minute ->
+                    selectedHour = hour
+                    selectedMinute = minute
+                    isTimeDialogOpen = false
+
+                    calendar.set(Calendar.YEAR, selectedYear)
+                    calendar.set(Calendar.MONTH, selectedMonth)
+                    calendar.set(Calendar.DAY_OF_MONTH, selectedDay)
+                    calendar.set(Calendar.HOUR_OF_DAY, selectedHour)
+                    calendar.set(Calendar.MINUTE, selectedMinute)
+                    calendar.set(Calendar.SECOND, 0)
+
+                    val formattedDataNotifica = "%02d/%02d/%04d".format(selectedDay, selectedMonth + 1, selectedYear)
+                    val formattedOraNotifica = "%02d:%02d".format(selectedHour, selectedMinute)
+
+                    viewModel.sendNotificationAt(
+                        context,
+                        calendar.timeInMillis,
+                        selectedNote.value?.contenuto ?: "Nessun contenuto"
+                    )
+
+                    // Aggiorna la nota con data e ora notifica
+                    selectedNote.value?.let { nota ->
+                        val updatedNote = nota.copy(
+                            dataNotifica = formattedDataNotifica,
+                            oraNotifica = formattedOraNotifica
+                        )
+                        viewModel.updateNote(updatedNote)
+                    }
+                },
+                selectedHour,
+                selectedMinute,
                 true
-            )
-            timePickerDialog.show()
+            ).show()
         }
 
 
@@ -223,17 +238,18 @@ fun RiepilogoScreen(
             ModficaNota(
                 nota = selectedNote.value!!,
                 onDismiss = { showDialog.value = false },
-                onSave = {updateNote ->
+                onSave = { updateNote ->
                     viewModel.updateNote(updateNote)
                     showDialog.value = false
                 }
             )
         }
+
         if (showDeleteDialog.value && selectedNote.value != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog.value = false },
-                title = {Text(text = "Conferma eliminazione")},
-                text = {Text(text = "Sei sicuro di voler eliminare questa nota?")},
+                title = { Text(text = "Conferma eliminazione") },
+                text = { Text(text = "Sei sicuro di voler eliminare questa nota?") },
                 confirmButton = {
                     Button(onClick = {
                         viewModel.deleteNote(selectedNote.value!!)
@@ -246,24 +262,15 @@ fun RiepilogoScreen(
                             )
                         }
                     }) {
-                        Text("Si",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                            )
+                        Text("Si", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     }
                 },
                 dismissButton = {
-                    Button(onClick = {
-                        showDeleteDialog.value = false
-                    }) {
-                        Text("No",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                            )
+                    Button(onClick = { showDeleteDialog.value = false }) {
+                        Text("No", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     }
                 }
             )
-
         }
     }
 }

@@ -1,16 +1,20 @@
 package com.example.remember
 
 import AlertDetails
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -68,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -83,13 +88,25 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    val CHANNEL_ID = "channelID"
-    val CHANNEL_NAME = "Notifiche Importanti"
-    val CHANNEL_DESCRIPTION = "Ricevi notifiche relative a eventi importanti della tua app."
+    private val CHANNEL_ID = "channelID"
+    private val CHANNEL_NAME = "Notifiche Importanti"
+    private val CHANNEL_DESCRIPTION = "Ricevi notifiche relative a eventi importanti della tua app."
+
+    private val requestPermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Toast.makeText(this, "Permesso notifiche concesso", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Permesso per le notifiche negato!", Toast.LENGTH_SHORT).show()
+            }
+        }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        askNotificationPermission() //  Richiesta permesso appena si apre l'app
+
         setContent {
             val isDarkTheme = remember { mutableStateOf(false) }
             RememberTheme(darkTheme = isDarkTheme.value) {
@@ -98,33 +115,46 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavHost(isDarkTheme)
-                    createNotificationsChannel() // Assicurati di creare il canale qui
+                    createNotificationChannel() //  Creazione canale notifiche
                 }
             }
         }
     }
 
-    // Crea il canale di notifica per Android 8.0+
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationsChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val CHANNEL_NAME = "Notifiche Importanti"  // Nome del canale
-            val CHANNEL_DESCRIPTION = "Ricevi notifiche relative a eventi importanti della tua app."  // Descrizione del canale
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+    //  Funzione per chiedere il permesso all'avvio
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
+    //  Crea il canale di notifica per Android 8.0+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
                 description = CHANNEL_DESCRIPTION
             }
-
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
     }
 
-    // Funzione per inviare una notifica
-     fun sendNotification() {
-        // Crea un'Intent per la notifica (puoi personalizzarla)
+    //  Test: invio notifica manuale (opzionale)
+    fun sendNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestNotificationPermission()
+                return
+            }
+        }
+
         val intent = Intent(this, AlertDetails::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -132,18 +162,23 @@ class MainActivity : ComponentActivity() {
             this, 0, intent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Crea la notifica
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Sostituisci con la tua icona
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Notifica di esempio")
             .setContentText("Questo è il corpo della notifica")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Visualizza la notifica
         with(NotificationManagerCompat.from(this)) {
-            notify(1, builder.build()) // Usa un ID univoco per ogni notifica
+            notify(1, builder.build())
+        }
+    }
+
+    // Permesso "manualmente" (non usato, ma tenuto per backup)
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 }

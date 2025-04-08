@@ -105,28 +105,17 @@ class NotesViewModel(private val notaRepository: NotaRepository = Graph.notaRepo
     }
 
     @SuppressLint("ScheduleExactAlarm")
-    fun sendNotificationAt(context: Context, hour: Int, minute: Int, notaContent: String) {
-        val calendar = Calendar.getInstance()
-        val now = Calendar.getInstance()
-
-        calendar.set(Calendar.HOUR_OF_DAY, hour)
-        calendar.set(Calendar.MINUTE, minute)
-        calendar.set(Calendar.SECOND, 0)
-
-        if (calendar.before(now)) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1)
-        }
-
+    fun sendNotificationAt(context: Context, timeInMillis: Long, notaContent: String) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("NOTA_CONTENT", notaContent) // Passa il contenuto della nota all'Intent
+            putExtra("NOTA_CONTENT", notaContent)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
 
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
     }
 
 }

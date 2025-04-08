@@ -10,5 +10,7 @@ data class Nota(
     val fase: String,
     val contenuto: String,
     val data: String,
-    val orario: String
+    val orario: String,
+    val dataNotifica: String? = null,
+    val oraNotifica: String? = null
 )
