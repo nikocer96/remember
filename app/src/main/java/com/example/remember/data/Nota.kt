@@ -11,6 +11,6 @@ data class Nota(
     val contenuto: String,
     val data: String,
     val orario: String,
-    val dataNotifica: String? = null,
-    val oraNotifica: String? = null
+    var dataNotifica: String? = null,
+    var oraNotifica: String? = null
 )
