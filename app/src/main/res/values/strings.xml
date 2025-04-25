@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Remember</string>
+    <string name="title_activity_main.xml">activity_main.xml</string>
 </resources>
