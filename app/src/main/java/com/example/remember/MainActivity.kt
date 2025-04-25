@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,9 +32,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
@@ -50,6 +53,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
@@ -64,9 +68,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,6 +90,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.remember.data.Nota
 import com.example.remember.ui.theme.RememberTheme
 import com.example.remember.viewModel.NotesViewModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 
@@ -105,7 +113,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        askNotificationPermission() //  Richiesta permesso appena si apre l'app
+        askNotificationPermission() // Richiesta permesso appena si apre l'app
 
         setContent {
             val isDarkTheme = remember { mutableStateOf(false) }
@@ -115,13 +123,14 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavHost(isDarkTheme)
-                    createNotificationChannel() //  Creazione canale notifiche
+                    createNotificationChannel() // Creazione canale notifiche
                 }
             }
         }
+
     }
 
-    //  Funzione per chiedere il permesso all'avvio
+    // Funzione per chiedere il permesso all'avvio
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -132,7 +141,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    //  Crea il canale di notifica per Android 8.0+
+    // Crea il canale di notifica per Android 8.0+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -144,7 +153,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    //  Test: invio notifica manuale (opzionale)
+    //  Invio notifica manuale
     fun sendNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -175,10 +184,78 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Permesso "manualmente" (non usato, ma tenuto per backup)
+    // Permesso manuale
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+}
+
+
+@Composable
+fun LoginScreen(navController: NavController) {
+    val email = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        OutlinedTextField(
+            value = email.value,
+            onValueChange = { email.value = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = password.value,
+            onValueChange = { password.value = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(onClick = {
+            if (email.value.isNotEmpty() && password.value.isNotEmpty()) {
+                auth.signInWithEmailAndPassword(email.value, password.value)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(context, "Login riuscito!", Toast.LENGTH_SHORT).show()
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Errore login: ${task.exception?.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+            } else {
+                Toast.makeText(context, "Inserisci email e password!", Toast.LENGTH_SHORT).show()
+            }
+        }) {
+            Text("Login")
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        TextButton(onClick = {
+            navController.navigate("register")
+        }) {
+            Text("Non hai un account? Registrati")
         }
     }
 }
@@ -193,63 +270,59 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
     val viewModel: NotesViewModel = viewModel()
     val navController = rememberNavController()
 
-    val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val canNavigateBack = currentBackStackEntry?.destination?.route != "home"
-
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        // Evita che il menu' resti aperto
-        drawerContent = {
-            ModalDrawerSheet {
-                DrawerContent(navController, isDarkTheme, drawerState, scope)
-            }
-        },
-        // Sfondo scuro quando il menu è aperto
-        scrimColor = Color.Black.copy(alpha = 0.5f)
-    ) {
+    val showUI = currentRoute != "login" && currentRoute != "register"
+
+    val startDestination = if (FirebaseAuth.getInstance().currentUser != null) "home" else "login"
+
+    val appContent: @Composable () -> Unit = {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Remember",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.White
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF5227D8),
-                        titleContentColor = Color.White
-                    ),
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = "Apri menù",
-                                tint = Color.White
+                if (showUI) {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = "Remember",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = Color.White
                             )
-                        }
-                    },
-                    actions = {
-                        if (canNavigateBack) {
-                            IconButton(onClick = {
-                                navController.popBackStack()
-                            }) {
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowBack,
-                                    contentDescription = "Torna indietro",
+                                    imageVector = Icons.Filled.Menu,
+                                    contentDescription = "Apri menù",
                                     tint = Color.White
                                 )
                             }
-                        }
-                    }
-                )
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                FirebaseAuth.getInstance().signOut()
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.ExitToApp,
+                                    contentDescription = "Logout",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color(0xFF5227D8),
+                            titleContentColor = Color.White
+                        )
+                    )
+                }
             }
         ) { innerPadding ->
             Box(
@@ -257,7 +330,13 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                NavHost(navController = navController, startDestination = "home") {
+                NavHost(navController = navController, startDestination = startDestination) {
+                    composable("login") {
+                        LoginScreen(navController)
+                    }
+                    composable("register") {
+                        RegisterScreen(navController)
+                    }
                     composable("home") {
                         HomeScreen(navController)
                     }
@@ -275,7 +354,25 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
             }
         }
     }
+
+    if (showUI) {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
+                    DrawerContent(navController, isDarkTheme, drawerState, scope)
+                }
+            },
+            scrimColor = Color.Black.copy(alpha = 0.5f)
+        ) {
+            appContent()
+        }
+    } else {
+        appContent()
+    }
 }
+
+
 
 @Composable
 fun HomeScreen(navController: NavHostController) {

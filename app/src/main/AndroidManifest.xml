@@ -3,13 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-
-
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:name=".NotaListApp"
         android:allowBackup="true"
@@ -22,23 +18,23 @@
         android:theme="@style/Theme.Remember"
         tools:targetApi="31">
         <activity
+            android:name=".activity_register"
+            android:exported="false" />
+        <!-- MainActivity è la launcher activity -->
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Remember">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name=".AlertDetails"
-            android:theme="@style/Theme.Remember"
-            android:exported="true">
-        </activity>
-        <receiver android:name=".NotificationReceiver"
-            android:exported="false"/>
+        </activity> <!-- Receiver -->
+        <receiver
+            android:name=".NotificationReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

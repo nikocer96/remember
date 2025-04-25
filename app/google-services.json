@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "134300327330",
+    "project_id": "remember-app-f47f1",
+    "storage_bucket": "remember-app-f47f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134300327330:android:4d5085bb16ea8b9f5de6fb",
+        "android_client_info": {
+          "package_name": "com.example.remember"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzpTd25vQ5ZmjeVI7A0xfjAcJsQzk8qdg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
