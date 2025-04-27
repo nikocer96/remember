@@ -39,6 +39,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,8 +68,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -200,64 +204,115 @@ fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(40.dp))
 
-        OutlinedTextField(
-            value = email.value,
-            onValueChange = { email.value = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Image(
+            painter = painterResource(id = R.drawable.prova_image),
+            contentDescription = "Background Image",
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center),
+            contentScale = ContentScale.Crop
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = password.value,
-            onValueChange = { password.value = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+            Text(text = "Effettua il Login",
+                modifier = Modifier.padding(20.dp),
+                fontSize = 23.sp,
+                fontFamily = FontFamily.SansSerif
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // Campo per la Email
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
 
-        Button(onClick = {
-            if (email.value.isNotEmpty() && password.value.isNotEmpty()) {
-                auth.signInWithEmailAndPassword(email.value, password.value)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Toast.makeText(context, "Login riuscito!", Toast.LENGTH_SHORT).show()
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Errore login: ${task.exception?.message}",
-                                Toast.LENGTH_LONG
-                            ).show()
+                Card(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .background(Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        OutlinedTextField(
+                            value = email.value,
+                            onValueChange = { email.value = it },
+                            label = { Text("Email") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Campo per la Password
+                        OutlinedTextField(
+                            value = password.value,
+                            onValueChange = { password.value = it },
+                            label = { Text("Password") },
+                            visualTransformation = PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Bottone per il Login
+                        Button(
+                            onClick = {
+                                if (email.value.isNotEmpty() && password.value.isNotEmpty()) {
+                                    auth.signInWithEmailAndPassword(email.value, password.value)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                Toast.makeText(context, "Login riuscito!", Toast.LENGTH_SHORT).show()
+                                                navController.navigate("home") {
+                                                    popUpTo("login") { inclusive = true }
+                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Errore login: ${task.exception?.message}",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        }
+                                } else {
+                                    Toast.makeText(context, "Inserisci email e password!", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()  // Riempie tutta la larghezza
+                        ) {
+                            Text("Login")
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Link per la registrazione
+                        TextButton(onClick = {
+                            navController.navigate("register")
+                        }) {
+                            Text("Non hai un account? Registrati")
                         }
                     }
-            } else {
-                Toast.makeText(context, "Inserisci email e password!", Toast.LENGTH_SHORT).show()
+                }
             }
-        }) {
-            Text("Login")
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        TextButton(onClick = {
-            navController.navigate("register")
-        }) {
-            Text("Non hai un account? Registrati")
+
         }
     }
+
 }
 
 
