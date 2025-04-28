@@ -98,7 +98,7 @@ fun RiepilogoScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(start= 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -109,8 +109,11 @@ fun RiepilogoScreen(
                                     append("Contenuto: ${nota.contenuto}\n")
                                     append("Data: ${nota.data}\n")
                                     append("Ora: ${nota.orario}")
+                                    append("\n")
                                     if (!nota.dataNotifica.isNullOrBlank() && !nota.oraNotifica.isNullOrBlank()) {
                                         append("\nNotifica: ${nota.dataNotifica} alle ${nota.oraNotifica}")
+                                    } else {
+                                        append("\nNessuna Notifica programmata")
                                     }
                                 },
                                 style = MaterialTheme.typography.bodyMedium

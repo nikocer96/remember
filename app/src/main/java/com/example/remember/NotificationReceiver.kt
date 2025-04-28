@@ -14,7 +14,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val notaContent = intent.getStringExtra("NOTA_CONTENT") ?: "Nessun contenuto"
 
         val builder = NotificationCompat.Builder(context, "channelID")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle("Notifica programmata")
             .setContentText(notaContent) // Mostra il contenuto della nota!
             .setPriority(NotificationCompat.PRIORITY_HIGH)

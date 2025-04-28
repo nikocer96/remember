@@ -71,10 +71,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-<<<<<<< HEAD
 import androidx.compose.ui.layout.ContentScale
-=======
->>>>>>> 432bbd6c582278221b870a938c46cb8929ce43d9
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -207,7 +204,6 @@ fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
-<<<<<<< HEAD
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -316,67 +312,6 @@ fun LoginScreen(navController: NavController) {
 
         }
     }
-
-=======
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(40.dp))
-
-        OutlinedTextField(
-            value = email.value,
-            onValueChange = { email.value = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password.value,
-            onValueChange = { password.value = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(onClick = {
-            if (email.value.isNotEmpty() && password.value.isNotEmpty()) {
-                auth.signInWithEmailAndPassword(email.value, password.value)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Toast.makeText(context, "Login riuscito!", Toast.LENGTH_SHORT).show()
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Errore login: ${task.exception?.message}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-            } else {
-                Toast.makeText(context, "Inserisci email e password!", Toast.LENGTH_SHORT).show()
-            }
-        }) {
-            Text("Login")
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        TextButton(onClick = {
-            navController.navigate("register")
-        }) {
-            Text("Non hai un account? Registrati")
-        }
-    }
->>>>>>> 432bbd6c582278221b870a938c46cb8929ce43d9
 }
 
 
@@ -414,12 +349,22 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
                             )
                         },
                         navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Menu,
-                                    contentDescription = "Apri menù",
-                                    tint = Color.White
-                                )
+                            if (currentRoute != "home") {
+                                IconButton(onClick = { navController.popBackStack() }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBack,
+                                        contentDescription = "Torna Indietro",
+                                        tint = Color.White
+                                    )
+                                }
+                            } else {
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Menu,
+                                        contentDescription = "Apri menù",
+                                        tint = Color.White
+                                    )
+                                }
                             }
                         },
                         actions = {
