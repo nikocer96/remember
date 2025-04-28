@@ -118,3 +118,8 @@ class NotesViewModel(private val notaRepository: NotaRepository = Graph.notaRepo
 
 }
 
+class SharedViewModel : ViewModel() {
+    var selectedNota = mutableStateOf<Nota?>(null)
+}
+
+

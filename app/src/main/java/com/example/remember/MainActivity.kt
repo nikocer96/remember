@@ -6,12 +6,10 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,7 +38,6 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,9 +65,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -94,6 +89,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.remember.data.Nota
 import com.example.remember.ui.theme.RememberTheme
 import com.example.remember.viewModel.NotesViewModel
+import com.example.remember.viewModel.SharedViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -333,6 +329,8 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
     val showUI = currentRoute != "login" && currentRoute != "register"
 
     val startDestination = if (FirebaseAuth.getInstance().currentUser != null) "home" else "login"
+    val sharedViewModel: SharedViewModel = viewModel()
+
 
     val appContent: @Composable () -> Unit = {
         Scaffold(
@@ -412,7 +410,10 @@ fun AppNavHost(isDarkTheme: MutableState<Boolean>) {
                         DayScreen(navController, giorno, viewModel, isDarkTheme)
                     }
                     composable("riepilogo") {
-                        RiepilogoScreen(navController, viewModel, isDarkTheme)
+                        RiepilogoScreen(navController, viewModel, isDarkTheme, sharedViewModel)
+                    }
+                    composable("visualizza") {
+                        Visualizza(navController, sharedViewModel)
                     }
                 }
             }

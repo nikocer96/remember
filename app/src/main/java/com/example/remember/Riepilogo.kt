@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -58,6 +59,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.remember.data.Nota
 import com.example.remember.viewModel.NotesViewModel
+import com.example.remember.viewModel.SharedViewModel
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -66,7 +69,8 @@ import java.util.Calendar
 fun RiepilogoScreen(
     navController: NavHostController,
     viewModel: NotesViewModel,
-    isDarkTheme: MutableState<Boolean>
+    isDarkTheme: MutableState<Boolean>,
+    sharedViewModel: SharedViewModel
 ) {
     val context = LocalContext.current
     val allNotes by viewModel.getAllNotes.collectAsState(initial = emptyList())
@@ -103,7 +107,7 @@ fun RiepilogoScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(start= 16.dp),
+                            .padding(start = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -272,6 +276,18 @@ fun RiepilogoScreen(
                                     },
                                     leadingIcon = {
                                         Icon(Icons.Filled.Notifications, contentDescription = "Programma notifica")
+                                    }
+                                )
+                                val gson = Gson()
+                                DropdownMenuItem(
+                                    text = { Text("Visualizza") },
+                                    onClick = {
+                                        sharedViewModel.selectedNota.value = nota
+                                        navController.navigate("visualizza")
+                                        expanded.value = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Send, contentDescription = "Visualizza notifica")
                                     }
                                 )
                             }
