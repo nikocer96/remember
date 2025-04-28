@@ -48,8 +48,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.remember.data.Nota
 import com.example.remember.viewModel.NotesViewModel
@@ -104,16 +109,55 @@ fun RiepilogoScreen(
                     ) {
                         Column() {
                             Text(
-                                text = buildString {
-                                    append("Fase: ${nota.fase}\n")
-                                    append("Contenuto: ${nota.contenuto}\n")
-                                    append("Data: ${nota.data}\n")
-                                    append("Ora: ${nota.orario}")
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )) {
+                                        append("Fase: ")
+                                    }
+                                    append("${nota.fase}\n")
+
+                                    withStyle(style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                    ) {
+                                        append("Contenuto: ")
+                                    }
+                                    append("${nota.contenuto}\n")
+
+                                    withStyle(style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                    ) {
+                                        append("Data: ")
+                                    }
+                                    append("${nota.data}\n")
+
+                                    withStyle(style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                    ) {
+                                        append("Ora: ")
+                                    }
+                                    append("${nota.orario}")
+
                                     append("\n")
+
+                                    withStyle(style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                    ) {
+                                        append("\nNotifica: ")
+                                    }
                                     if (!nota.dataNotifica.isNullOrBlank() && !nota.oraNotifica.isNullOrBlank()) {
-                                        append("\nNotifica: ${nota.dataNotifica} alle ${nota.oraNotifica}")
+                                        append("${nota.dataNotifica} alle ${nota.oraNotifica}")
                                     } else {
-                                        append("\nNessuna Notifica programmata")
+                                        append("Nessuna Notifica programmata")
                                     }
                                 },
                                 style = MaterialTheme.typography.bodyMedium
